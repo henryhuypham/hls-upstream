@@ -21,6 +21,7 @@ class ViewController: UIViewController {
     
     let videoProcessManager = VideoProcessManager()
     let segmentDuration: Double = 2
+    let durationThreshold: Double = 40
     let beatURL = Bundle.main.url(forResource: "beat", withExtension: "mp3")
     var audioPlayer: AVAudioPlayer!
     let queue = DispatchQueue(label: "Timer Mergefile Queue", qos: .background, attributes: .concurrent, autoreleaseFrequency: .workItem, target: nil)
@@ -136,7 +137,7 @@ class ViewController: UIViewController {
                                     self.accumulatedDuration += self.segmentDuration
                                     
                                     if self.isUpload {
-                                        self.uploadSegment(url: url, isLastSegment: self.accumulatedDuration >= 120)
+                                        self.uploadSegment(url: url, isLastSegment: self.accumulatedDuration >= self.durationThreshold)
                                     }
                                 },
                                 onError: { error in
@@ -162,16 +163,18 @@ class ViewController: UIViewController {
         Alamofire.upload(
             multipartFormData: { (formData: MultipartFormData) in
                 do {
-                    try formData.append(Data(contentsOf: url, options: .mappedIfSafe), withName: "segment.mp4", mimeType: "video/mp4")
+                    try formData.append(Data(contentsOf: url, options: .mappedIfSafe), withName: "segment", fileName: "segment.mp4", mimeType: "video/mp4")
                     
                     formData.append("d4a92e96-52ef-4240-bd13-e73689d7b268".data(using: .utf8)!, withName: "ChannelId")
-                    formData.append("\(self.segmentDuration)".data(using: .utf8)!, withName: "SegmentLength")
+                    formData.append("\(Int(self.segmentDuration))".data(using: .utf8)!, withName: "SegmentLength")
                     formData.append("\(isLastSegment)".data(using: .utf8)!, withName: "HasEnded")
                 } catch {
                     print(error)
                 }
             },
-            to: "http://hls.singsing.vn/hls/upload/index", method: .post,
+            to: "http://hls.singsing.vn/hls/upload/index",
+//            to: "http://172.31.13.131:51369/hls/upload/index",
+            method: .post,
             headers: ["Content-type": "multipart/form-data"],
             encodingCompletion: { (result: SessionManager.MultipartFormDataEncodingResult) -> Void in
                 switch result {
