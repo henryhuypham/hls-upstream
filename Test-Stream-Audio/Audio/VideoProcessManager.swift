@@ -25,7 +25,7 @@ class VideoProcessManager: NSObject {
 
     static let DEFAULT_RENDER_OUTPUT = CGSize(width: 640, height: 640)
     static let DEFAULT_FPS: Int32 = 30
-    static let DEFAULT_FILE_TYPE = AVFileType.mp3
+    static let DEFAULT_FILE_TYPE = AVFileTypeMPEGLayer3
 
     private var renderSize = DEFAULT_RENDER_OUTPUT
     private var frameDuration = CMTimeMake(1, DEFAULT_FPS)
@@ -37,7 +37,7 @@ class VideoProcessManager: NSObject {
 
     func add(audioURL: URL) -> VideoProcessManager {
         let audioAsset = AVAsset(url: audioURL)
-        let audioTrackAsset = audioAsset.tracks(withMediaType: .audio)[0]
+        let audioTrackAsset = audioAsset.tracks(withMediaType: AVMediaTypeAudio)[0]
 
         audioTracks.append(AudioTrack(asset: audioAsset,
                 audioTrack: audioTrackAsset))
@@ -57,19 +57,19 @@ class VideoProcessManager: NSObject {
 
 
     func output(fileType: AVFileType) -> VideoProcessManager {
-        outputFileType = fileType
+        outputFileType = fileType as String
         return self
     }
 
     func merge(onSuccess: @escaping (URL) -> Void, onError: @escaping (Error) -> Void) {
-        let audioTrack1 = mixComposition.addMutableTrack(withMediaType: AVMediaType.audio, preferredTrackID: kCMPersistentTrackID_Invalid)
-        let audioTrack2 = mixComposition.addMutableTrack(withMediaType: AVMediaType.audio, preferredTrackID: kCMPersistentTrackID_Invalid)
+        let audioTrack1 = mixComposition.addMutableTrack(withMediaType: AVMediaTypeAudio, preferredTrackID: kCMPersistentTrackID_Invalid)
+        let audioTrack2 = mixComposition.addMutableTrack(withMediaType: AVMediaTypeAudio, preferredTrackID: kCMPersistentTrackID_Invalid)
         
         do {
-            try audioTrack1?.insertTimeRange(CMTimeRangeMake(kCMTimeZero, audioTracks[0].asset.duration),
+            try audioTrack1.insertTimeRange(CMTimeRangeMake(kCMTimeZero, audioTracks[0].asset.duration),
                                              of: audioTracks[0].audioTrack,
                                              at: kCMTimeZero)
-            try audioTrack2?.insertTimeRange(CMTimeRangeMake(CMTime(seconds: VideoProcessManager.startTime, preferredTimescale: 1000), audioTracks[0].asset.duration),
+            try audioTrack2.insertTimeRange(CMTimeRangeMake(CMTime(seconds: VideoProcessManager.startTime, preferredTimescale: 10000), audioTracks[0].asset.duration),
                                              of: audioTracks[1].audioTrack,
                                              at: kCMTimeZero)
             print("\(VideoProcessManager.startTime),")
@@ -92,8 +92,8 @@ class VideoProcessManager: NSObject {
 
     private func exportVideo(asset: AVAsset, onSuccess: @escaping (URL) -> Void, onError: @escaping (Error) -> Void) {
         let savePathUrl = URL(fileURLWithPath: NSTemporaryDirectory() + "Audio-\(VideoProcessManager.getTimeNow()).mp4")
-        let assetExport: AVAssetExportSession = AVAssetExportSession(asset: asset, presetName: AVAssetExportPresetLowQuality)!
-        assetExport.outputFileType = AVFileType.mp4
+        let assetExport: AVAssetExportSession = AVAssetExportSession(asset: asset, presetName: AVAssetExportPresetMediumQuality)!
+        assetExport.outputFileType = AVFileTypeMPEG4
         assetExport.outputURL = savePathUrl
         assetExport.shouldOptimizeForNetworkUse = true
 

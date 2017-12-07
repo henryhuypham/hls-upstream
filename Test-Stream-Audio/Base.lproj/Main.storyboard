@@ -18,6 +18,13 @@
                         <rect key="frame" x="0.0" y="0.0" width="375" height="667"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
+                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="Npc-2e-thy">
+                                <rect key="frame" x="137" y="276" width="102" height="30"/>
+                                <state key="normal" title="Start &amp; Upload"/>
+                                <connections>
+                                    <action selector="startRecordAndUpload:" destination="BYZ-38-t0r" eventType="touchUpInside" id="RGA-hs-clB"/>
+                                </connections>
+                            </button>
                             <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="So6-IM-rG4">
                                 <rect key="frame" x="171" y="318" width="32" height="30"/>
                                 <state key="normal" title="start"/>
@@ -42,9 +49,11 @@
                         </subviews>
                         <color key="backgroundColor" red="1" green="1" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                         <constraints>
+                            <constraint firstItem="So6-IM-rG4" firstAttribute="top" secondItem="Npc-2e-thy" secondAttribute="bottom" constant="12" id="D6p-sd-yve"/>
                             <constraint firstItem="So6-IM-rG4" firstAttribute="centerX" secondItem="8bC-Xf-vdC" secondAttribute="centerX" id="Hee-Be-iEk"/>
                             <constraint firstItem="Qe5-Xc-alZ" firstAttribute="top" secondItem="So6-IM-rG4" secondAttribute="bottom" constant="8" id="KGD-xN-4lG"/>
                             <constraint firstItem="Kz4-nl-4Xs" firstAttribute="top" secondItem="Qe5-Xc-alZ" secondAttribute="bottom" constant="24" id="V1k-aL-Euc"/>
+                            <constraint firstItem="Npc-2e-thy" firstAttribute="centerX" secondItem="8bC-Xf-vdC" secondAttribute="centerX" id="Z3z-PI-5UL"/>
                             <constraint firstItem="Qe5-Xc-alZ" firstAttribute="trailing" secondItem="So6-IM-rG4" secondAttribute="trailing" id="Z7F-vF-WI2"/>
                             <constraint firstItem="Qe5-Xc-alZ" firstAttribute="leading" secondItem="So6-IM-rG4" secondAttribute="leading" id="c8h-uv-FaF"/>
                             <constraint firstItem="So6-IM-rG4" firstAttribute="centerY" secondItem="8bC-Xf-vdC" secondAttribute="centerY" id="cKc-Iu-cxX"/>
@@ -55,6 +64,35 @@
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="dkx-z0-nzr" sceneMemberID="firstResponder"/>
             </objects>
+            <point key="canvasLocation" x="33" y="137"/>
+        </scene>
+        <!--Test Merge View Controller-->
+        <scene sceneID="kK5-kv-Nez">
+            <objects>
+                <viewController id="jXd-03-ieu" customClass="TestMergeViewController" customModule="Test_Stream_Audio" customModuleProvider="target" sceneMemberID="viewController">
+                    <view key="view" contentMode="scaleToFill" id="kpH-Cd-Zh9">
+                        <rect key="frame" x="0.0" y="0.0" width="375" height="667"/>
+                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                        <subviews>
+                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="RVK-r9-h7O">
+                                <rect key="frame" x="165" y="318" width="44" height="30"/>
+                                <state key="normal" title="Merge"/>
+                                <connections>
+                                    <action selector="merge:" destination="jXd-03-ieu" eventType="touchUpInside" id="UWb-JZ-nwj"/>
+                                </connections>
+                            </button>
+                        </subviews>
+                        <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                        <constraints>
+                            <constraint firstItem="RVK-r9-h7O" firstAttribute="centerY" secondItem="kpH-Cd-Zh9" secondAttribute="centerY" id="Dhe-nn-fax"/>
+                            <constraint firstItem="RVK-r9-h7O" firstAttribute="centerX" secondItem="kpH-Cd-Zh9" secondAttribute="centerX" id="zse-ze-lRQ"/>
+                        </constraints>
+                        <viewLayoutGuide key="safeArea" id="gDM-pH-XCO"/>
+                    </view>
+                </viewController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="XVR-mR-K2v" userLabel="First Responder" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="33" y="858"/>
         </scene>
     </scenes>
 </document>

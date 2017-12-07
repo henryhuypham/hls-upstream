@@ -6,14 +6,18 @@
 //  Copyright © 2017 JBach. All rights reserved.
 //
 
-import UIKit
 import AVFoundation
+import RxSwift
+import SwiftyJSON
+import Alamofire
 
 class ViewController: UIViewController {
     
     var superpowered: AudioSuperpower!
     var timer: Timer!
     var tmpDirpath: String = ""
+    var isUpload = false
+    var accumulatedDuration: Double = 0
     
     let videoProcessManager = VideoProcessManager()
     let segmentDuration: Double = 2
@@ -28,10 +32,20 @@ class ViewController: UIViewController {
     }
     
     @IBAction func startRecord() {
+        isUpload = false
+        startRecording()
+    }
+    
+    @IBAction func startRecordAndUpload(_ sender: Any) {
+        isUpload = true
+        startRecording()
+    }
+    
+    private func startRecording() {
         audioPlayer.play()
         superpowered.setupRecordAudio()
         superpowered.startRecord()
-
+        
         timer = Timer.scheduledTimer(withTimeInterval: segmentDuration, repeats: true, block: { (timer) in
             self.loopWriteToFile()
         })
@@ -58,20 +72,20 @@ class ViewController: UIViewController {
             for file in mp4Files {
                 let filePath = "\(dirPath)\(file)"  
                 let audioAsset = AVAsset(url: URL(fileURLWithPath: filePath))
-                let audioTrackAsset = audioAsset.tracks(withMediaType: .audio)[0]
+                let audioTrackAsset = audioAsset.tracks(withMediaType: AVMediaTypeAudio)[0]
                 let trackResource = AudioTrack(asset: audioAsset, audioTrack: audioTrackAsset)
                 
-                let audioTrack = mixComposition.addMutableTrack(withMediaType: AVMediaType.audio, preferredTrackID: kCMPersistentTrackID_Invalid)
-                try audioTrack?.insertTimeRange(CMTimeRangeMake(kCMTimeZero, trackResource.asset.duration),
+                let audioTrack = mixComposition.addMutableTrack(withMediaType: AVMediaTypeAudio, preferredTrackID: kCMPersistentTrackID_Invalid)
+                try audioTrack.insertTimeRange(CMTimeRangeMake(kCMTimeZero, trackResource.asset.duration),
                                                 of: trackResource.audioTrack,
-                                                at: CMTime(seconds: startTime, preferredTimescale: 1000))
+                                                at: CMTime(seconds: startTime, preferredTimescale: 10000))
                 
                 startTime += trackResource.asset.duration.seconds
             }
             
             let savePathUrl = URL(fileURLWithPath: NSTemporaryDirectory() + "Merged.mp4")
-            let assetExport: AVAssetExportSession = AVAssetExportSession(asset: mixComposition, presetName: AVAssetExportPresetLowQuality)!
-            assetExport.outputFileType = AVFileType.mp4
+            let assetExport: AVAssetExportSession = AVAssetExportSession(asset: mixComposition, presetName: AVAssetExportPresetMediumQuality)!
+            assetExport.outputFileType = AVFileTypeMPEG4
             assetExport.outputURL = savePathUrl
             assetExport.shouldOptimizeForNetworkUse = true
             
@@ -117,9 +131,13 @@ class ViewController: UIViewController {
                             .add(audioURL: self.beatURL!)
                             .merge(
                                 onSuccess: { (url) in
-//                                    print("===== merged: \(url.absoluteString)")
-//                                    print("time: ", VideoProcessManager.getTimeNow())
                                     timer.invalidate()
+                                    print("URL: ----- \(url)")
+                                    self.accumulatedDuration += self.segmentDuration
+                                    
+                                    if self.isUpload {
+                                        self.uploadSegment(url: url, isLastSegment: self.accumulatedDuration >= 120)
+                                    }
                                 },
                                 onError: { error in
                                     print(error.localizedDescription)
@@ -138,5 +156,36 @@ class ViewController: UIViewController {
         superpowered.stopRecord()
         superpowered.setupRecordAudio()
         superpowered.startRecord()
+    }
+    
+    func uploadSegment(url: URL, isLastSegment: Bool) {
+        Alamofire.upload(
+            multipartFormData: { (formData: MultipartFormData) in
+                do {
+                    try formData.append(Data(contentsOf: url, options: .mappedIfSafe), withName: "segment.mp4", mimeType: "video/mp4")
+                    
+                    formData.append("d4a92e96-52ef-4240-bd13-e73689d7b268".data(using: .utf8)!, withName: "ChannelId")
+                    formData.append("\(self.segmentDuration)".data(using: .utf8)!, withName: "SegmentLength")
+                    formData.append("\(isLastSegment)".data(using: .utf8)!, withName: "HasEnded")
+                } catch {
+                    print(error)
+                }
+            },
+            to: "http://hls.singsing.vn/hls/upload/index", method: .post,
+            headers: ["Content-type": "multipart/form-data"],
+            encodingCompletion: { (result: SessionManager.MultipartFormDataEncodingResult) -> Void in
+                switch result {
+                case .success(let uploadRequest, let isFromDisk, let fileUrl):
+                    uploadRequest.responseJSON { response in
+                        print("Succesfully uploaded")
+                        if let err = response.error {
+                            print(err.localizedDescription)
+                        }
+                    }
+                case .failure(let error):
+                    print("Error in upload: \(error.localizedDescription)")
+                }
+            }
+        )
     }
 }
